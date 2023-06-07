@@ -9,10 +9,14 @@ pub struct Cli {
     /// Path to the binary
     #[arg(value_parser = validate_bin)]
     pub bin: PathBuf,
+
+    /// Enable verbose
+    #[arg(short, long, default_value_t = false)]
+    pub verbose: bool,
 }
 
 #[cfg(windows)]
-fn is_bin(metadata: fs::Metadata) -> Result<bool, String> {
+fn is_bin(metadata: fs::Metadata) -> Result<(), String> {
     // On Windows
     use std::os::windows::fs::MetadataExt;
     const FILE_ATTRIBUTE_DIRECTORY: u32 = 0x10;
@@ -46,17 +50,17 @@ fn is_bin(metadata: fs::Metadata) -> Result<bool, String> {
             "File is not a executable (may not have the right permissions)!"
         ))
     } else {
-        Ok(true)
+        Ok(())
     }
 }
 
 #[cfg(unix)]
-fn is_bin(metadata: fs::Metadata) -> Result<bool, String> {
+fn is_bin(metadata: fs::Metadata) -> Result<(), String> {
     // On Unix based OS
     use std::os::unix::fs::PermissionsExt;
     let mode: u32 = metadata.permissions().mode();
     if mode & 0o111 != 0 {
-        Ok(true)
+        Ok(())
     } else {
         Err(format!(
             "File is not a executable (may not have the right permissions)!"
